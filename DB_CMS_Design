@@ -1,0 +1,108 @@
+Table consents {
+  consent_id uuid [primary key]
+  consent_type varchar [not null, note: 'AIS | PIS | EWLTS']
+  status varchar [not null, note: 'AIS: ACTIVE|REVOKED|EXPIRED; PIS/EWLTS: AWAITING_AUTH|AUTHORISED|REJECTED|CANCELLED|EXPIRED|CONSUMED']
+  
+  tpp_id varchar [not null]
+  provider_id varchar
+  client_id varchar [not null, note: 'OAuth client id in IAM/Keycloak']
+  psu_id varchar [note: 'nullable for init flows before PSU login']
+
+  scope varchar [not null, note: 'AIS | PIS | EWLTS']
+  purpose text
+  actor varchar [not null, note: 'TPP | PSU | BANK_SYSTEM | ADMIN']
+
+  request_id varchar [note: 'Trace Request-ID from gateway']
+  request_datetime timestamp [note: 'Trace Request-DateTime (RFC3339)']
+
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  expires_at timestamp [note: 'e.g. consentId TTL 300s for decoupled/OTP; AIS longer']
+  authorised_at timestamp
+  revoked_at timestamp
+  cancelled_at timestamp
+
+  reason_code varchar
+  reason_detail text
+}
+
+Table consent_accounts {
+  id bigserial [primary key]
+  consent_id uuid [not null]
+  account_id varchar [not null]
+  permissions json [note: 'e.g. {"balances":true,"transactions":true}']
+  created_at timestamp [not null]
+}
+
+Table consent_transactions {
+  id bigserial [primary key]
+  consent_id uuid [not null]
+
+  ref_type varchar [not null, note: 'PIS_PAYMENT | EWLTS_TX']
+  ref_id varchar [not null, note: 'paymentId or transactionId']
+  
+  amount numeric
+  currency varchar [note: 'ISO 4217 e.g. VND']
+
+  debtor_info json [note: 'debtor account / payer info (optional)']
+  creditor_info json [note: 'creditor / payee info (optional)']
+  wallet_info json [note: 'wallet identifier info (optional)']
+
+  one_time boolean [not null, note: 'true for one-time PIS token style']
+  consumed_at timestamp
+
+  created_at timestamp [not null]
+}
+
+Table consent_events {
+  event_id uuid [primary key]
+  consent_id uuid [not null]
+
+  event_type varchar [not null, note: 'CREATED|AWAITING_AUTH|AUTHORISED|REJECTED|CANCELLED|REVOKED|EXPIRED|CONSUMED']
+  occurred_at timestamp [not null]
+
+  request_id varchar
+  actor varchar [not null, note: 'TPP | PSU | BANK_SYSTEM | ADMIN']
+  payload json [note: 'full context for audit/monitoring']
+  
+  published boolean [not null]
+  published_at timestamp
+}
+
+Table tpps {
+  tpp_id varchar [primary key]
+  name varchar [not null]
+  status varchar [not null, note: 'ACTIVE | SUSPENDED']
+  callback_url varchar [note: 'used for decoupled update-consent to TPP']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table admin_users {
+  id integer [primary key]
+  username varchar [not null]
+  role varchar [not null, note: 'CONSENT_ADMIN | CONSENT_AUDITOR | SUPER_ADMIN']
+  status varchar [not null, note: 'ACTIVE | DISABLED']
+  created_at timestamp [not null]
+}
+
+Table admin_actions {
+  action_id uuid [primary key]
+  admin_user_id integer [not null]
+
+  action_type varchar [not null, note: 'FORCE_REVOKE | FORCE_CANCEL | TPP_SUSPEND | TPP_UNSUSPEND | UPDATE_CALLBACK_URL | REPLAY_EVENT']
+  target_type varchar [not null, note: 'CONSENT | TPP | EVENT']
+  target_id varchar [not null, note: 'consent_id or tpp_id or event_id']
+
+  reason text [not null]
+  request_id varchar
+  created_at timestamp [not null]
+}
+
+Ref consent_accounts_consent: consent_accounts.consent_id > consents.consent_id // many-to-one
+Ref consent_transactions_consent: consent_transactions.consent_id > consents.consent_id // many-to-one
+Ref consent_events_consent: consent_events.consent_id > consents.consent_id // many-to-one
+
+Ref admin_actions_admin: admin_actions.admin_user_id > admin_users.id // many-to-one
+
+Ref consent_tpp: consents.tpp_id > tpps.tpp_id // many-to-one
