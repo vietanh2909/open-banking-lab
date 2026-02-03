@@ -1,0 +1,17 @@
+server:
+  port: 8088
+
+fintech:
+  ciam:
+    issuer: http://ciam-keycloak:8080/realms/openbanking
+    client-id: tpp-fintech
+    # nếu client là confidential thì bật secret, nếu public thì để rỗng
+    client-secret: "tU98L1xSQpmrPv4fWYFs33iUNpONWz63"
+    # token endpoint sẽ tự tính từ issuer nếu không set
+    token-endpoint: 0/realms/"http://ciam-keycloak:808openbanking/protocol/openid-connect/token"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
