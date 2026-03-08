@@ -1,0 +1,239 @@
+version: "3.8"
+
+services:
+  banking-service:
+    build: ./banking-service
+    depends_on:
+      ob-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8087"
+      DB_URL: jdbc:postgresql://ob-postgres:5432/obdb
+      DB_USER: ob
+      DB_PASSWORD: ob123
+    ports:
+      - "8087:8087"
+    networks:
+      - obnet
+  ob-postgres:
+    container_name: ob-postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ob
+      POSTGRES_PASSWORD: ob123
+      POSTGRES_DB: obdb
+    volumes:
+      - ob_pgdata:/var/lib/postgresql/data
+    ports:
+      - "56438:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ob -d obdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [obnet]
+
+  # ===================== CONSENT DB =====================
+  consent-postgres:
+    container_name: consent-postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: consent
+      POSTGRES_PASSWORD: consent123
+      POSTGRES_DB: consentdb
+    volumes:
+      - consent_pgdata:/var/lib/postgresql/data
+    ports:
+      - "56437:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U consent -d consentdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [obnet]
+  
+  # ===================== CONSENT SERVICE =====================
+  consent-service:
+    build: ./consent-services
+    depends_on:
+      consent-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: "8082"
+      DB_URL: jdbc:postgresql://consent-postgres:5432/consentdb
+      DB_USER: consent
+      DB_PASSWORD: consent123
+    ports:
+      - "8082:8082"
+    networks:
+      - obnet
+
+  # ===== CIAM DB =====
+  ciam-postgres:
+    container_name: ciam-postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: iam123456
+      POSTGRES_DB: keycloak
+    volumes:
+      - ciam_pgdata:/var/lib/postgresql/data
+    ports:
+      - "56435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [obnet]
+
+  # ===== RB DB =====
+  # rb-postgres:
+  #   container_name: rb-postgres
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_USER: keycloak
+  #     POSTGRES_PASSWORD: iam123456
+  #     POSTGRES_DB: keycloak
+  #   volumes:
+  #     - rb_pgdata:/var/lib/postgresql/data
+  #   ports:
+  #     - "56432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 20
+  #   networks: [obnet]
+
+  # ===== CIAM Keycloak =====
+  ciam-keycloak:
+    container_name: ciam-keycloak
+    image: quay.io/keycloak/keycloak:26.3.3
+    command: start-dev
+    depends_on:
+      ciam-postgres:
+        condition: service_healthy
+    environment:
+      # Hostname/public URL
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: ciam.bank.local
+      KC_HOSTNAME_PORT: "8080"
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: forwarded
+
+      # Admin bootstrap
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+      # DB config
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://ciam-postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: iam123456
+
+    volumes:
+      - ./consent-auth-spi/target/consent-auth-spi-1.0.0.jar:/opt/keycloak/providers/consent-auth-spi-1.0.0.jar
+      - ./consent-auth-spi/src/main/resources/theme-resources:/opt/keycloak/themes/custom-consent
+      - ./token-listener-spi/target/token-listener-spi-1.0.0.jar:/opt/keycloak/providers/token-listener-spi-1.0.0.jar
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "rb.bank.local:host-gateway"
+    networks: 
+      obnet:
+        aliases:
+         - ciam.bank.local
+
+  # # ===== RB Keycloak =====
+  # rb-keycloak:
+  #   container_name: rb-keycloak
+  #   image: quay.io/keycloak/keycloak:26.3.3
+  #   command: start-dev
+  #   depends_on:
+  #     rb-postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     KC_HTTP_ENABLED: "true"
+  #     KC_HOSTNAME: rb.bank.local
+  #     KC_HOSTNAME_PORT: "8990"
+  #     KC_HOSTNAME_STRICT: "false"
+  #     KC_PROXY_HEADERS: forwarded
+
+  #     KC_BOOTSTRAP_ADMIN_USERNAME: admin
+  #     KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+  #     KC_DB: postgres
+  #     KC_DB_URL: jdbc:postgresql://rb-postgres:5432/keycloak
+  #     KC_DB_USERNAME: keycloak
+  #     KC_DB_PASSWORD: iam123456
+
+  #   ports:
+  #     - "8990:8080"
+  #   networks: [obnet]
+
+  # ===== FINTECH FE =====
+  fintech:
+    container_name: fintech
+    build:
+      context: ./fintech
+      dockerfile: Dockerfile
+    ports:
+      - "8880:80"   # đổi port nếu bạn đang dùng 8080 cho service khác
+    networks: [obnet]
+    restart: unless-stopped
+    # ===== FINTECH APP =====
+  fintech-app:
+    container_name: fintech-app
+    build:
+      context: ./fintech-app
+      dockerfile: Dockerfile
+    ports:
+      - "8886:80"   # đổi port nếu bạn đang dùng 8080 cho service khác
+    networks: [obnet]
+    restart: unless-stopped
+  # ===================== FINTECH SERVICE =====================
+  fintech-services:
+    build: ./fintech-services
+    depends_on:
+      fintech-postgres:
+        condition: service_healthy
+    environment:
+      BANKING_BASE_URL: http://banking-service:8087
+      BANKING_CONSENT_URL: http://consent-service:8082
+      DB_URL: jdbc:postgresql://fintech-postgres:5432/fintechdb
+      DB_USER: fintech
+      DB_PASSWORD: fintech
+    ports:
+      - "8085:8085"
+    networks:
+      - obnet
+
+  fintech-postgres:
+    container_name: fintech-postgres
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fintech
+      POSTGRES_PASSWORD: fintech
+      POSTGRES_DB: fintechdb
+    volumes:
+      - fintech_pgdata:/var/lib/postgresql/data
+    ports:
+      - "56439:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fintech -d fintechdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [obnet]
+
+networks:
+  obnet:
+    driver: bridge
+
+volumes:
+  ciam_pgdata:
+  rb_pgdata:
+  consent_pgdata:
+  ob_pgdata:
+  fintech_pgdata:
