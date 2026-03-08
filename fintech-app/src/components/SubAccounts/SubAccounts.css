@@ -1,0 +1,3 @@
+.fw-subcard {
+  @apply bg-white dark:bg-slate-900 rounded-xl p-6 border shadow-sm hover:border-primary transition-all cursor-pointer relative;
+}

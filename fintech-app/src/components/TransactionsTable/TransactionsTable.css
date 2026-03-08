@@ -1,0 +1,11 @@
+.fw-table {
+  @apply bg-white dark:bg-slate-900 rounded-xl border border-primary/10 shadow-sm overflow-hidden;
+}
+
+.fw-th {
+  @apply text-xs font-bold uppercase tracking-wider text-slate-500;
+}
+
+.fw-table__filterBtn {
+  @apply px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold flex items-center gap-2;
+}

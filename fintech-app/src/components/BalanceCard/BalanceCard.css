@@ -1,0 +1,19 @@
+.fw-balance {
+  @apply bg-gradient-to-br from-primary to-orange-600 rounded-xl p-8 text-white shadow-xl shadow-primary/20 flex flex-col justify-between relative overflow-hidden;
+}
+
+.fw-balance__watermark {
+  @apply absolute top-0 right-0 p-8 opacity-20;
+}
+
+.fw-balance__btn {
+  @apply flex-1 lg:flex-none min-w-[140px] flex items-center justify-center gap-2 rounded-xl h-12 font-bold transition-all;
+}
+
+.fw-balance__btn--primary {
+  @apply bg-white text-primary hover:bg-slate-50 shadow-lg;
+}
+
+.fw-balance__btn--ghost {
+  @apply bg-primary-dark/20 border border-white/30 backdrop-blur-sm text-white hover:bg-white/10;
+}

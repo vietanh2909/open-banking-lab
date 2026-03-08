@@ -1,0 +1,103 @@
+.fw-topup-overlay {
+  @apply fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm;
+}
+
+.fw-topup-modal {
+  @apply bg-white dark:bg-slate-900 w-full max-w-[500px] rounded-2xl shadow-2xl overflow-hidden border border-primary/10;
+}
+
+.fw-topup-header {
+  @apply px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between;
+}
+
+.fw-topup-iconWrap {
+  @apply size-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary;
+}
+
+.fw-topup-title {
+  @apply text-xl font-bold text-slate-900 dark:text-slate-100;
+}
+
+.fw-topup-close {
+  @apply text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors;
+}
+
+.fw-topup-body {
+  @apply p-8 space-y-6;
+}
+
+.fw-topup-label {
+  @apply block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2;
+}
+
+.fw-topup-source {
+  @apply w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-left;
+}
+
+.fw-topup-sourceWrap {
+  @apply relative;
+}
+
+.fw-topup-dropdown {
+  @apply absolute z-20 mt-2 w-full max-h-56 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg;
+}
+
+.fw-topup-dropdownItem {
+  @apply w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-b-0;
+}
+
+.fw-topup-dropdownName {
+  @apply text-sm font-bold text-slate-900 dark:text-slate-100;
+}
+
+.fw-topup-dropdownMeta {
+  @apply text-xs text-slate-500 mt-1;
+}
+
+.fw-topup-sourceIcon {
+  @apply size-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center;
+}
+
+.fw-topup-sourceName {
+  @apply text-sm font-bold text-slate-900 dark:text-slate-100 leading-none;
+}
+
+.fw-topup-sourceBalance {
+  @apply text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider;
+}
+
+.fw-topup-inputWrap {
+  @apply relative;
+}
+
+.fw-topup-currency {
+  @apply absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold text-xl;
+}
+
+.fw-topup-input {
+  @apply w-full pl-10 pr-4 py-4 bg-white dark:bg-slate-800 border-2 border-primary/20 focus:border-primary focus:ring-4 focus:ring-primary/5 rounded-xl text-2xl font-bold text-slate-900 dark:text-slate-100 transition-all outline-none;
+}
+
+.fw-topup-summary {
+  @apply bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-2;
+}
+
+.fw-topup-row {
+  @apply flex justify-between text-xs;
+}
+
+.fw-topup-row span:first-child {
+  @apply text-slate-500 font-medium;
+}
+
+.fw-topup-row span:last-child {
+  @apply text-slate-900 dark:text-slate-100 font-bold;
+}
+
+.fw-topup-footer {
+  @apply px-8 pb-8;
+}
+
+.fw-topup-confirm {
+  @apply w-full bg-primary hover:bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all;
+}
