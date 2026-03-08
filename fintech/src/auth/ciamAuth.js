@@ -4,7 +4,11 @@ const ISSUER = import.meta.env.VITE_CIAM_ISSUER; // .../realms/<realm>
 const CLIENT_ID = import.meta.env.VITE_CIAM_CLIENT_ID;
 const FINTECH_BASE = import.meta.env.VITE_FINTECH_BASE_URL;
 
-export async function startCiamLogin(returnTo = "/dashboard") {
+export async function startCiamLogin({
+  returnTo = "/dashboard",
+  scope = "openid profile email",
+  flow = "AIS_LINK"
+}) {
   const authorize = `${ISSUER}/protocol/openid-connect/auth`;
 
   const redirectUri = `${FINTECH_BASE}/oidc/callback`;
@@ -16,11 +20,12 @@ export async function startCiamLogin(returnTo = "/dashboard") {
   sessionStorage.setItem("pkce_verifier", verifier);
   sessionStorage.setItem("oidc_state", state);
   sessionStorage.setItem("return_to", returnTo);
+  sessionStorage.setItem("oidc_flow", flow);
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     response_type: "code",
-    scope: "openid profile email accounts.read",
+    scope,
     redirect_uri: redirectUri,
     state,
     code_challenge: challenge,

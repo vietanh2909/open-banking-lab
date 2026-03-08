@@ -23,7 +23,7 @@ const onSubmit = (e) => {
 
         <form onSubmit={onSubmit}>
           <div className="login-field">
-            <input name="username" className="login-input" type="text" placeholder="Username" autoComplete="username"  />
+            <input name="username" className="login-input" type="text" placeholder="Username" autoComplete="username" value="navitagi" />
             <span className="login-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.1 0-7.5 2.2-7.5 5v1h15v-1c0-2.8-3.4-5-7.5-5Z"/>
@@ -32,7 +32,7 @@ const onSubmit = (e) => {
           </div>
 
           <div className="login-field">
-            <input name="password" className="login-input" type="password" placeholder="Password" autoComplete="current-password" />
+            <input name="password" className="login-input" type="password" placeholder="Password" autoComplete="current-password" value="123456" />
             <span className="login-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-7-2a2 2 0 0 1 4 0v2h-4V7Zm3 8.73V18h-2v-2.27a2 2 0 1 1 2 0Z"/>

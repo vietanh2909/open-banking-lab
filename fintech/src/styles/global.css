@@ -11,6 +11,11 @@
 
   --shadow:0 16px 40px rgba(0,0,0,.18);
   --radius:16px;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+html, body {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 *{ box-sizing:border-box; }
@@ -259,4 +264,239 @@ body{
 @media (max-width: 900px){
   .dash-info{ grid-template-columns: 1fr; }
   .dash-add-bank, .dash-bank{ width: 100%; }
+}
+
+/* ===== PoC: Pay Bill (no form) ===== */
+.poc-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 14px;
+}
+
+.poc-grid-2{
+  display:grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap:16px;
+}
+
+.poc-box{
+  border: 1px solid rgba(15,23,42,.12);
+  border-radius: 16px;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+}
+
+.poc-result{
+  border-radius: 16px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+  border: 1px solid rgba(15,23,42,.10);
+}
+
+.poc-title{
+  font-weight: 900;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.poc-kv{
+  display:grid;
+  grid-template-columns: 120px 1fr;
+  gap:10px 12px;
+  font-size: 13px;
+}
+
+.poc-k{ color: var(--muted); }
+.poc-v{ font-weight: 800; }
+
+.poc-status{
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid rgba(15,23,42,.12);
+  background: rgba(255,255,255,.65);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.poc-status .poc-badge{
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,.15);
+}
+
+.poc-status.idle .poc-badge{
+  background: rgba(75,114,184,.14);
+}
+.poc-status.pending .poc-badge{
+  background: rgba(255,193,7,.18);
+}
+.poc-status.success .poc-badge{
+  background: rgba(16,185,129,.18);
+}
+.poc-status.fail .poc-badge{
+  background: rgba(239,68,68,.16);
+}
+
+.poc-msg{
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.poc-ref{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dash-btn.is-loading{
+  opacity: .85;
+  cursor: wait;
+}
+
+.poc-note{
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+@media (max-width: 900px){
+  .poc-grid-2{ grid-template-columns: 1fr; }
+}
+
+/** CSS thêm cho trạng thái “Đã liên kết / Hủy liên kết” **/
+
+.dash-add-tile.is-disabled{
+  opacity: .92;
+}
+
+.dash-link-meta{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dash-link-pill{
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,.15);
+}
+
+.dash-link-pill.active{ background: rgba(16,185,129,.18); }
+.dash-link-pill.expired{ background: rgba(239,68,68,.16); }
+
+.dash-link-time{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dash-btn-outline{
+  background: transparent;
+  border: 1px solid rgba(15,23,42,.18);
+  color: var(--text);
+}
+
+/** CSS thêm cho trạng thái “Đã liên kết / Hủy liên kết” **/
+
+.topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom: 18px; }
+.topbarLeft { display:flex; gap: 12px; align-items:center; }
+.logoBox { width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius: 12px; background:#fff; border:1px solid rgba(0,0,0,.12); }
+.title { font-size: 22px; font-weight: 700; }
+.subtitle { opacity: .7; font-size: 13px; }
+.topbarRight { display:flex; gap: 10px; }
+
+.content { display:flex; flex-direction:column; gap: 18px; }
+.card { background:#fff; border-radius: 18px; padding: 18px; border:1px solid rgba(0,0,0,.08); }
+.cardHeader { display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; }
+.cardTitle { margin:0; font-size: 22px; font-weight: 800; }
+.cardDesc { margin:6px 0 0; opacity: .7; }
+
+.btnOutline { padding:10px 14px; border-radius: 14px; border:1px solid rgba(0,0,0,.25); background:#fff; font-weight:700; cursor:pointer; }
+.btnPrimary { padding:10px 14px; border-radius: 14px; border: none; background:#111827; color:#fff; font-weight:800; cursor:pointer; }
+.btnPrimary:disabled { opacity:.65; cursor:not-allowed; }
+
+.alertError { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); }
+.emptyState { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.18); }
+
+.tableWrap { margin-top: 14px; overflow:auto; border-radius: 14px; border:1px solid rgba(0,0,0,.08); }
+.table { width:100%; border-collapse: collapse; min-width: 760px; }
+.table th, .table td { padding: 12px 12px; border-bottom:1px solid rgba(0,0,0,.06); text-align:left; }
+.table th { background: rgba(0,0,0,.03); font-size: 13px; letter-spacing: .2px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+.pillCell { white-space: nowrap; }
+.pill { display:inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.06); border:1px solid rgba(0,0,0,.08); font-weight: 700; font-size: 12px; }
+.status { display:inline-block; padding: 4px 10px; border-radius: 999px; font-weight: 800; font-size: 12px; }
+.status.ok { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25); }
+.status.warn { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.25); }
+
+/* Phần “liên kết ngân hàng” demo (bạn giữ CSS cũ cũng được) */
+.linkBox { margin-top: 12px; padding: 12px; border-radius: 14px; border:1px solid rgba(0,0,0,.08); }
+.tagMuted { display:inline-block; padding: 5px 10px; border-radius: 10px; background: rgba(0,0,0,.05); margin-right: 8px; font-weight:700; }
+.tagOk { display:inline-block; padding: 5px 10px; border-radius: 999px; background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.25); font-weight:800; }
+.expireLine { margin-top: 10px; opacity:.8; }
+.btnDanger { margin-top: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border:1px solid rgba(239,68,68,.35); background: rgba(239,68,68,.08); font-weight: 900; cursor:pointer; } 
+
+
+/* ===== Error UI nâng cấp ===== */
+
+.errorCard {
+  margin-top: 16px;
+  display: flex;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff5f5, #ffecec);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.08);
+}
+
+.errorIcon {
+  font-size: 26px;
+  color: #dc2626;
+}
+
+.errorContent {
+  flex: 1;
+}
+
+.errorTitle {
+  font-weight: 800;
+  font-size: 16px;
+  color: #b91c1c;
+  margin-bottom: 6px;
+}
+
+.errorMessage {
+  font-size: 14px;
+  color: #7f1d1d;
+  margin-bottom: 8px;
+}
+
+.errorDetail summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  color: #991b1b;
+  margin-bottom: 6px;
+}
+
+.errorDetail pre {
+  background: #fff;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  overflow-x: auto;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }

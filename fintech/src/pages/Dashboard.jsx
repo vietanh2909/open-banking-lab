@@ -1,9 +1,77 @@
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { startCiamLogin } from "../auth/ciamAuth";
+import { getAisAccounts } from "../services/aisService";
+
+function formatVnd(n) {
+  try {
+    return new Intl.NumberFormat("vi-VN").format(n) + " VND";
+  } catch {
+    return `${n} VND`;
+  }
+}
+
+
+function fmtTime(ms) {
+  const d = new Date(ms);
+  return d.toLocaleString("vi-VN");
+}
 
 export default function Dashboard() {
   const nav = useNavigate();
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [accountsError, setAccountsError] = useState("");
+  const hasAccounts = useMemo(() => Array.isArray(accounts) && accounts.length > 0, [accounts]);
+  const [payState, setPayState] = useState({ status: "IDLE", message: "", ref: "" });
+  const [bankLink, setBankLink] = useState(null);
+
+  // giả lập dữ liệu hoá đơn + bank đã link
+  const bill = useMemo(() => ({
+    provider: "EVN (Điện lực)",
+    customerId: "EVN-0123456789",
+    period: "2026-01",
+    amount: 450000,
+    bank: { code: "MSB", name: "Ngân hàng MSB" },
+    billId: "BILL-202601-0001",
+  }), []);
+
+  useEffect(() => {
+      const raw = localStorage.getItem("bank_link_state");
+      setBankLink(raw ? JSON.parse(raw) : null);
+    }, []);
+
+  const isLinked = !!bankLink?.linked;
+  const isExpired = isLinked && bankLink.expiresAt && Date.now() >= bankLink.expiresAt;
+
+  const onLink = () => {
+      startCiamLogin({
+        flow: "AIS_LINK",
+        scope: "openid profile email ais",
+        returnTo: "/dashboard"
+      });
+  };
+
+  const onUnlink = () => {
+    localStorage.removeItem("bank_link_state");
+    setBankLink(null);
+  };
+
+  const fetchAccounts = async () => {
+    setLoadingAccounts(true);
+    setAccountsError("");
+
+    try {
+      const list = await getAisAccounts();
+      setAccounts(list);
+    } catch (e) {
+      setAccounts([]);
+      setAccountsError(e?.message || "Không truy vấn được danh sách tài khoản.");
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
 
   return (
     <div className="dash-page">
@@ -29,54 +97,210 @@ export default function Dashboard() {
 
         {/* Thông tin cá nhân */}
         <section className="dash-card">
-          <h2 className="dash-h2">Thông tin cá nhân</h2>
-          <p className="dash-hint">Thông tin định danh người dùng</p>
-
-          <div className="dash-profile">
-            <div className="dash-avatar" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.1 0-7.5 2.2-7.5 5v1h15v-1c0-2.8-3.4-5-7.5-5Z"/>
-              </svg>
+          <div className="cardHeader">
+            <div>
+              <h2 className="cardTitle">Thông tin tài khoản</h2>
+              <p className="cardDesc">Truy vấn và hiển thị danh sách tài khoản AIS</p>
             </div>
 
-            <div className="dash-info">
-              <div className="dash-field"><span>Họ tên</span><strong>Nguyễn Văn A</strong></div>
-              <div className="dash-field"><span>SĐT</span><strong>090x xxx xxx</strong></div>
-              <div className="dash-field"><span>Email</span><strong>user@mail.com</strong></div>
-              <div className="dash-field"><span>CCCD</span><strong>0xxxxxxxxx</strong></div>
-              <div className="dash-field"><span>KYC</span><strong>Đã xác minh</strong></div>
-              <div className="dash-field"><span>Cập nhật</span><strong>29/01/2026</strong></div>
-            </div>
+            <button
+              className="btnPrimary"
+              type="button"
+              onClick={fetchAccounts}
+              disabled={loadingAccounts}
+              title="Truy vấn danh sách tài khoản"
+            >
+              {loadingAccounts ? "Đang truy vấn..." : "Truy vấn danh sách tài khoản"}
+            </button>
           </div>
+
+          {/* Error */}
+          {accountsError && (
+            <div className="errorCard">
+              <div className="errorIcon">⚠</div>
+              <div className="errorContent">
+                <div className="errorTitle">
+                  Không thể tải danh sách tài khoản
+                </div>
+                <div className="errorMessage">
+                  Hệ thống không nhận được dữ liệu hợp lệ từ dịch vụ AIS.
+                </div>
+
+                <details className="errorDetail">
+                  <summary>Xem chi tiết kỹ thuật</summary>
+                  <pre>{accountsError}</pre>
+                </details>
+              </div>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loadingAccounts && !accountsError && !hasAccounts ? (
+            <div className="emptyState">
+              Chưa có dữ liệu. Bấm <b>Truy vấn danh sách tài khoản</b> để tải dữ liệu.
+            </div>
+          ) : null}
+
+          {/* Table */}
+          {hasAccounts ? (
+            <div className="tableWrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Account ID</th>
+                    <th>Tên tài khoản</th>
+                    <th>Loại</th>
+                    <th>Tiền tệ</th>
+                    <th>Mã ngân hàng</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accounts.map((a, idx) => (
+                    <tr key={`${a.accountId || "acc"}-${idx}`}>
+                      <td className="mono">{a.accountId || "-"}</td>
+                      <td>{a.name || "-"}</td>
+                      <td className="pillCell">
+                        <span className="pill">{a.type || "-"}</span>
+                      </td>
+                      <td className="pillCell">
+                        <span className="pill">{a.currency || "-"}</span>
+                      </td>
+                      <td className="pillCell">
+                        <span className="pill">{a.bankCode || "-"}</span>
+                      </td>
+                      <td className="pillCell">
+                        <span className={`status ${String(a.status).toLowerCase() === "active" ? "ok" : "warn"}`}>
+                          {a.status || "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
         </section>
 
         {/* Ngân hàng liên kết */}
         <section className="dash-card">
-          <h2 className="dash-h2">Liên kết ngân hàng</h2>
-          <p className="dash-hint">Quản lý các ngân hàng đã liên kết</p>
+        <h2 className="dash-h2">Liên kết ngân hàng</h2>
+        <p className="dash-hint">Quản lý các ngân hàng đã liên kết</p>
 
-          <div className="dash-banks">
-            {/* Add bank tile */}
+        <div className="dash-banks-row">
+          {/* Ô liên kết */}
+          <div className={`dash-add-tile ${isLinked ? "is-disabled" : ""}`}>
             <button
-              className="dash-add-bank"
+              className="dash-add-btn"
               type="button"
-               onClick={() => startCiamLogin("/dashboard")}
+              onClick={onLink}
+              disabled={isLinked}
+              title={isLinked ? "Bạn đã liên kết, vui lòng hủy trước khi liên kết lại" : "Liên kết ngân hàng"}
             >
-              <div className="dash-plus-circle" aria-hidden="true" />
-              <p>Liên kết ngân hàng</p>
+              <div className="dash-plus-icon" aria-hidden="true" />
+              <div className="dash-add-text">
+                {isLinked ? "Đã liên kết" : "Liên kết ngân hàng"}
+              </div>
             </button>
 
-            {/* Demo tiles */}
-            <div className="dash-bank">
-              <div className="dash-bank-logo">MB</div>
-              <h4>Ngân hàng MB</h4>
-              <span>Đang hoạt động</span>
+            {/* Text trạng thái */}
+            {isLinked && (
+              <div className="dash-link-meta">
+                <div className={`dash-link-pill ${isExpired ? "expired" : "active"}`}>
+                  {isExpired ? "Hết hạn" : "Đang hiệu lực"}
+                </div>
+                <div className="dash-link-time">
+                  Hết hạn lúc: <b>{fmtTime(bankLink.expiresAt)}</b>
+                </div>
+
+                <button
+                  className="dash-btn dash-btn-outline"
+                  type="button"
+                  onClick={onUnlink}
+                >
+                  Hủy liên kết
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+        <section className="dash-card">
+          <div className="poc-head">
+            <div>
+              <h2 className="dash-h2">Thanh toán hóa đơn điện (PoC)</h2>
+              <p className="dash-hint">Giả lập giao dịch thanh toán 1 hóa đơn đã sẵn sàng</p>
             </div>
 
-            <div className="dash-bank">
-              <div className="dash-bank-logo">VCB</div>
-              <h4>Vietcombank</h4>
-              <span>Token còn 12 ngày</span>
+            <button
+              className={`dash-btn dash-btn-primary ${payState.status === "PENDING" ? "is-loading" : ""}`}
+              type="button"
+              //onClick={onPay}
+              onClick={() => startCiamLogin({
+                flow: "AIS_LINK",
+                scope: "openid profile email pis",
+                returnTo: "/dashboard"
+              })}
+              disabled={payState.status === "PENDING"}
+            >
+              {payState.status === "PENDING" ? "Đang thanh toán..." : "Thanh toán"}
+            </button>
+          </div>
+
+          <div className="poc-grid-2">
+            {/* Bill info */}
+            <div className="poc-box">
+              <div className="poc-title">Thông tin hóa đơn</div>
+
+              <div className="poc-kv">
+                <div className="poc-k">Nhà cung cấp</div>
+                <div className="poc-v">{bill.provider}</div>
+
+                <div className="poc-k">Mã khách hàng</div>
+                <div className="poc-v">{bill.customerId}</div>
+
+                <div className="poc-k">Kỳ hóa đơn</div>
+                <div className="poc-v">{bill.period}</div>
+
+                <div className="poc-k">Số tiền</div>
+                <div className="poc-v">{formatVnd(bill.amount)}</div>
+
+                <div className="poc-k">Ngân hàng</div>
+                <div className="poc-v">{bill.bank.name} ({bill.bank.code})</div>
+
+                <div className="poc-k">BillId</div>
+                <div className="poc-v">{bill.billId}</div>
+              </div>
+            </div>
+
+            {/* Result */}
+            <div className="poc-result">
+              <div className="poc-title">Kết quả</div>
+
+              <div className={`poc-status ${payState.status.toLowerCase()}`}>
+                <span className="poc-badge">
+                  {payState.status === "IDLE" && "CHƯA THANH TOÁN"}
+                  {payState.status === "PENDING" && "PENDING"}
+                  {payState.status === "SUCCESS" && "SUCCESS"}
+                  {payState.status === "FAIL" && "FAIL"}
+                </span>
+
+                <div className="poc-msg">
+                  {payState.status === "IDLE" && "Nhấn “Thanh toán” để bắt đầu PoC."}
+                  {payState.status !== "IDLE" && payState.message}
+                </div>
+
+                {payState.ref && (
+                  <div className="poc-ref">
+                    Mã giao dịch: <b>{payState.ref}</b>
+                  </div>
+                )}
+              </div>
+
+              <div className="poc-note">
+                *PoC: Sau này bạn có thể thay phần random bằng gọi `fintech-services → PIS/Consent` và map trạng thái.
+              </div>
             </div>
           </div>
         </section>
