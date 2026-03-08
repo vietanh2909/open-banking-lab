@@ -1,0 +1,31 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/consentdb}
+    username: ${DB_USER:consent}
+    password: ${DB_PASSWORD:consent123}
+    driver-class-name: org.postgresql.Driver
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${ISSUER_URL:http://ciam.bank.local:8080/realms/openbanking/protocol/openid-connect/certs}
+
+consent:
+  provider-id: openbanking
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+logging:
+  level:
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:INFO}
+    org.springframework.security: TRACE
+    org.springframework.security.oauth2: TRACE
+    org.springframework.web: DEBUG
