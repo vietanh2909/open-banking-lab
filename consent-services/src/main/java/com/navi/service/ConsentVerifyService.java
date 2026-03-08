@@ -1,17 +1,24 @@
 package com.navi.service;
 
 import com.navi.domain.ConsentEntity;
+import com.navi.domain.ConsentStatus;
 import com.navi.domain.ConsentType;
 import com.navi.dto.VerifyConsentResponse;
 import com.navi.exception.ConsentVerifyException;
 import com.navi.repository.ConsentRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
 
+@Service
 public class ConsentVerifyService {
     private final ConsentRepository consentRepository;
     private final String providerId;
@@ -67,12 +74,12 @@ public class ConsentVerifyService {
                 ));
 
         // 5) validate consent_type
-        if (consent.getConsentType() != ConsentType.AIS) {
+        if (!Objects.equals(consent.getConsentType(), ConsentType.AIS.name())) {
             throw new ConsentVerifyException("INVALID_CONSENT_TYPE", "Consent type must be AIS.");
         }
 
         // 6) validate status
-        if (consent.getStatus() != ConsentStatus.APPROVED) {
+        if (!Objects.equals(consent.getStatus(), ConsentStatus.APPROVED.name())) {
             throw new ConsentVerifyException("INVALID_STATUS", "Consent must be APPROVED.");
         }
 
@@ -111,8 +118,8 @@ public class ConsentVerifyService {
         return new VerifyConsentResponse(
                 true,
                 consent.getId().toString(),
-                consent.getConsentType().name(),
-                consent.getStatus().name(),
+                consent.getConsentType(),
+                consent.getStatus(),
                 consent.getClientId(),
                 consent.getProviderId(),
                 consent.getPsuId(),
