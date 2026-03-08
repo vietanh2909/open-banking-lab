@@ -1,14 +1,38 @@
 server:
-  port: 8088
+  port: ${SERVER_PORT:8085}
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:56439/fintechdb}
+    username: ${DB_USER:fintechdb}
+    password: ${DB_PASSWORD:fintechdb}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+logging:
+  level:
+    org.hibernate.SQL: {HIBERNATE_SQL_LOG:INFO}
+
+banking:
+  base-url: http://localhost:8087
+  consent-url: http://localhost:8082
+
 
 fintech:
   ciam:
-    issuer: http://ciam-keycloak:8080/realms/openbanking
+    issuer: ${ISSUER_URL:http://ciam-keycloak:8080/realms/openbanking}
     client-id: tpp-fintech
     # nếu client là confidential thì bật secret, nếu public thì để rỗng
     client-secret: "tU98L1xSQpmrPv4fWYFs33iUNpONWz63"
     # token endpoint sẽ tự tính từ issuer nếu không set
-    token-endpoint: 0/realms/"http://ciam-keycloak:808openbanking/protocol/openid-connect/token"
+    token-endpoint: "/protocol/openid-connect/token"
+    revoke-token-endpoint: "/protocol/openid-connect/revoke"
 
 management:
   endpoints:

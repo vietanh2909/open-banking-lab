@@ -1,7 +1,13 @@
 package com.navi.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "access_tokens",
@@ -10,6 +16,8 @@ import java.time.Instant;
                 @Index(name = "idx_tokens_active", columnList = "active"),
                 @Index(name = "idx_tokens_expires_at", columnList = "expiresAt")
         })
+@Getter
+@Setter
 public class AccessTokenEntity {
 
     @Id
@@ -25,8 +33,7 @@ public class AccessTokenEntity {
     private String scope;
 
     // access token (khuyến nghị mã hoá trước khi lưu)
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String accessToken;
 
     // thời điểm hết hạn tính theo exp hoặc expires_in
@@ -34,7 +41,7 @@ public class AccessTokenEntity {
     private Instant expiresAt;
 
     // tuỳ chọn: refresh token (nếu có)
-    @Lob
+    @Column(nullable = false, columnDefinition = "text")
     private String refreshToken;
 
     // đánh dấu token còn hiệu lực để bạn disable khi unlink
@@ -46,4 +53,7 @@ public class AccessTokenEntity {
     private Instant createdAt = Instant.now();
 
     private Instant revokedAt;
+
+    @Column(name = "consent_id", length = 50)
+    private String consentId;
 }
