@@ -1,0 +1,24 @@
+server:
+  port: ${SERVER_PORT:8085}
+
+consent:
+  verify:
+    base-url: http://consent-service:8082
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:56438/obdb}
+    username: ${DB_USER:ob}
+    password: ${DB_PASSWORD:ob123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+logging:
+  level:
+    org.hibernate.SQL: {HIBERNATE_SQL_LOG:INFO}
